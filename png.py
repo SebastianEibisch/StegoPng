@@ -1,4 +1,6 @@
 import zlib
+import binascii
+from modules.injector import IdatInjector
 
 class PngStego:
     def __init__(self, file):
@@ -48,6 +50,7 @@ class PngStego:
                 print("->flags bits:", bin( int( additionalFlag.hex(), 16) ).replace("0b", ""), "hex=", additionalFlag.hex())
                 content = self._read(chunkSize-6)
                 checkValue = self._read(4)
+                IdatInjector().injectPayload(debug=True, payload=bytes([0]), idatChunk=zlibCompression+additionalFlag+content+checkValue, pictureWidth=10)
                 print("->checkValue (?):", int(checkValue.hex(), 16))
             else:
                 self._read(chunkSize)
@@ -79,14 +82,16 @@ class PngStego:
                 targetFile.write( chunkSizeBytes.to_bytes(4,"big") )
                 targetFile.write( chunkTypeBytes )
                 targetFile.write( maniContent )
+                targetFile.write( binascii.crc32(chunkSizeBytes.to_bytes(4,"big") + chunkTypeBytes + maniContent).to_bytes(4, "big") )
 
                 checkValue = self._read(4)
+                self._read(4) #CRC
             else:
                 print("Chunk", chunkTypeBytes.decode('ascii'), "read...")
                 targetFile.write(chunkSizeBytes + chunkTypeBytes)
                 targetFile.write( self._read( int(chunkSizeBytes.hex(), 16) ) )
+                targetFile.write(self._read(4)) #CRC
 
-            targetFile.write(self._read(4)) #CRC
 
             if chunkTypeBytes.decode('ascii') == "IEND":
                 break 
@@ -101,7 +106,7 @@ class PngStego:
         newBytes = []
         for index, byte in enumerate(content):
             if index == 1:
-                newBytes.append(255)
+                newBytes.append(0)
             else:
                 newBytes.append(byte)
 
@@ -135,32 +140,34 @@ class PngStego:
                 break 
 
 if __name__ == '__main__':
-    filename = "sample2.png"
+    filename = "samples/2x3_rgb.png"
     target = "manipulated.png"
 
     idat_orig_result = "idat_original.chunk"
     idat_mani_result = "idat_manipulated.chunk"
     
     
-    
+   
     sampleFile = open(filename, "rb")
     stego = PngStego(sampleFile)
     stego.analyse()
+    ''' 
     sampleFile.seek(0)
     stego.extractIdat(sampleFile, idat_orig_result)
+    ''' 
     
     
     
-    '''
-    with open(filename, "rb") as pngimage, open(target, "ab") as targetFile:
+    with open(filename, "rb") as pngimage, open(target, "wb") as targetFile:
         stego = PngStego(pngimage)
         stego.manipulateAndCopy(targetFile)
-
+    ''' 
     with open(filename, "rb") as origFile, open(target, "rb") as maniFile:
         stego = PngStego(filename)
         stego.extractIdat(origFile, idat_orig_result)
         stego.extractIdat(maniFile, idat_mani_result)
     '''
+   
 '''
 Color Type
 -----------------------------
@@ -183,4 +190,27 @@ Level | ZLIB  | GZIP
   8   | 78 DA | 1F 8B 
   9   | 78 DA | 1F 8B 
 
+
+https://stackoverflow.com/questions/9050260/what-does-a-zlib-header-look-like/17176881
+
+  FLEVEL:     0       1       2       3
+CINFO:
+     0      08 1D   08 5B   08 99   08 D7
+     1      18 19   18 57   18 95   18 D3
+     2      28 15   28 53   28 91   28 CF
+     3      38 11   38 4F   38 8D   38 CB
+     4      48 0D   48 4B   48 89   48 C7
+     5      58 09   58 47   58 85   58 C3
+     6      68 05   68 43   68 81   68 DE
+     7      78 01   78 5E   78 9C   78 DA
+
+filter-byte
+------------------------------
+bild-breite * 3 + 1
+
+z.b. 3x3
+00 ff ff ff ff ff ff ff ff ff 00 ff ff ff ff ff ff ff ff ff 00 ff ff ff ff ff ff ff ff ff c
+
+
     '''
+

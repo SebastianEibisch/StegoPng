@@ -4,7 +4,7 @@ class Manipulator:
 
     def hide(self, content : bytes, messageToHide : bytes) -> bytes:
         secretBitStream = self._toBitStream(messageToHide)
-        
+
         manipulatedBytes = []
         bitPointer = 0
         for byte in content:

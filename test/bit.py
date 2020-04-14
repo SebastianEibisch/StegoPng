@@ -81,7 +81,9 @@ class Manipulator:
 content = b'hallo du da'
 secret  = b'ab'
 secretBits = ''
-
+test = b'123456789'
+print(test[2:-4])
+exit()
 print("---- secret ----")
 for index, element in enumerate(secret):
     secretBits += format(12, '#010b').replace('0b', '')

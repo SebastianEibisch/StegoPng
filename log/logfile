@@ -1,0 +1,11 @@
+DEBUG:root:test
+2020-01-30 10:21:02,014 test
+2020-01-30 11:33:40,761 pictureWidth : 10
+2020-01-30 11:33:40,762 injecting payload ...
+2020-01-30 11:33:40,762 size of recieved idat chunk 25 bytes
+2020-01-30 11:33:40,762 decompression level detected 1857
+2020-01-30 11:42:36,614 idat injector arguments ...
+2020-01-30 11:42:36,614 pictureWidth : 10
+2020-01-30 11:42:36,614 injecting payload ...
+2020-01-30 11:42:36,615 size of recieved idat chunk 25 bytes
+2020-01-30 11:42:36,615 decompression level detected 1857
